@@ -10,24 +10,28 @@ import javax.validation.constraints.Size;
 import org.hibernate.validator.constraints.Length;
 
 @Entity
-@Table(name = "Department", catalog = "TestingSystem")
-public class Department {
+@Table(name = "Position", catalog = "TestingSystem")
+public class Position {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "DepartmentID")
+	@Column(name = "PositionID")
 	private int id;
 
-	@Column(name = "DepartmentName", length = 50, nullable = false, unique = true)
+	@Column(name = "PositionName")
 	@Length(min = 6, max = 50)
 	private String name;
 
-	@OneToMany(mappedBy = "department", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "position", fetch = FetchType.LAZY)
 	@Size(min = 0)
 	@Valid
 	private Set<Account> listAccount = new HashSet<Account>();
 
-	public Department() {
+	public Position() {
 		super();
+	}
+
+	public int getId() {
+		return id;
 	}
 
 	public String getName() {
@@ -38,21 +42,9 @@ public class Department {
 		this.name = name;
 	}
 
-	public Set<Account> getListAccount() {
-		return listAccount;
-	}
-
-	public void setListAccount(Set<Account> listAccount) {
-		this.listAccount = listAccount;
-	}
-
-	public int getId() {
-		return id;
-	}
-
 	@Override
 	public String toString() {
-		return "Department [id=" + id + ", name=" + name + "]";
+		return "Position [id=" + id + ", name=" + name + "]";
 	}
 
 }

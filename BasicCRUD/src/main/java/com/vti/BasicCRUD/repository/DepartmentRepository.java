@@ -1,140 +1,44 @@
 package com.vti.BasicCRUD.repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.query.Query;
-import org.hibernate.service.ServiceRegistry;
+import com.vti.BasicCRUD.entity.*;
+import com.vti.BasicCRUD.utils.*;
+import com.vti.BasicCRUD.validation.EntityValidation;
 
-import com.vti.BasicCRUD.entity.Department;
-
-public class DepartmentRepository {
-	private SessionFactory sessionFactory;
+public class DepartmentRepository implements IDepartmentRepository {
+	private ICRUDUtils crudUtils;
+	private EntityValidation entityValidation;
+	private List<Class<?>> listClass;
 
 	public DepartmentRepository() {
-		sessionFactory = buildSF();
+		listClass = new ArrayList<Class<?>>();
+		listClass.add(Account.class);
+		listClass.add(Department.class);
+		listClass.add(Position.class);
+
+		crudUtils = new CRUDHibernate(listClass);
+		crudUtils.open();
+
+		entityValidation = new EntityValidation();
 	}
 
-	private SessionFactory buildSF() {
-		Configuration configuration = new Configuration();
-		configuration.configure("hibernate.cfg.xml");
-
-		configuration.addAnnotatedClass(Department.class);
-
-		ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
-				.applySettings(configuration.getProperties()).build();
-
-		return configuration.buildSessionFactory(serviceRegistry);
+	public List<?> getAllDepartment() {
+		return crudUtils.findAll(Department.class, "id", 1, 0, 0, null, "LIKE", "");
 	}
 
-	public List<Department> getAllDepartment() {
-		Session session = null;
-		try {
-			session = sessionFactory.openSession();
-			Query<Department> query = session.createQuery("FROM Department");
-			return query.list();
-		} finally {
-			if (session != null)
-				session.close();
-		}
+	public Object getDepartmentById(int id) {
+		List<?> result = crudUtils.findByColumns(Department.class, null, null, 0, 0, 1, "id", "=", id);
+		return result.size() > 0 ? result.get(0) : null;
 	}
 
-	public Department getDepartmentById(short id) {
-		Session session = null;
-		try {
-			session = sessionFactory.openSession();
-			Department department = session.get(Department.class, id);
-			return department;
-		} finally {
-			if (session != null)
-				session.close();
-		}
+	public Object getDepartmentByName(String name) {
+		List<?> result = crudUtils.findByColumns(Department.class, null, null, 0, 0, 1, "name", "=", name);
+		return result.size() > 0 ? result.get(0) : null;
 	}
 
-	public Department getDepartmentByName(String name) {
-		Session session = null;
-		try {
-			session = sessionFactory.openSession();
-			String hqlQuery = "FROM Department WHERE name='" + name + "'";
-			Query<Department> query = session.createQuery(hqlQuery);
-			Department department = query.getSingleResult();
-			return department;
-		} finally {
-			if (session != null)
-				session.close();
-		}
-	}
-
-	public void createDepartment(Department department) {
-		Session session = null;
-		try {
-			session = sessionFactory.openSession();
-			session.beginTransaction();
-
-			session.save(department);
-
-			session.getTransaction().commit();
-		} catch (Exception e) {
-			session.getTransaction().rollback();
-		} finally {
-			if (session != null)
-				session.close();
-		}
-	}
-
-	public void updateDepartment(short id, String newDepartmentName) {
-		Session session = null;
-		try {
-			session = sessionFactory.openSession();
-			session.beginTransaction();
-
-			// Get department
-			Department department = (Department) session.load(Department.class, id);
-
-			// Update via persistent instance
-			department.setName(newDepartmentName);
-
-			session.getTransaction().commit();
-		} finally {
-			if (session != null)
-				session.close();
-		}
-	}
-
-	public void updateDepartment(Department department) {
-		Session session = null;
-		try {
-			session = sessionFactory.openSession();
-			session.beginTransaction();
-
-			session.update(department);
-
-			session.getTransaction().commit();
-		} finally {
-			if (session != null)
-				session.close();
-		}
-	}
-
-	public void deleteDepartment(short id) {
-		Session session = null;
-		try {
-			session = sessionFactory.openSession();
-			session.beginTransaction();
-
-			// Get department
-			Department department = (Department) session.load(Department.class, id);
-			
-			// Delete
-			session.delete(department);
-			
-			session.getTransaction().commit();
-		} finally {
-			if (session != null)
-				session.close();
-		}
+	public void close() {
+		crudUtils.close();
 	}
 }
